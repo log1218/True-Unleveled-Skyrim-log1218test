@@ -38,19 +38,19 @@ namespace TrueUnleveledSkyrim
             // ===== 1. 能力値・スキル・Perk 補正 (NPCs.cs) =====
             if (ModSettings.Value.UnlevelNPCs)
             {
-                NPCs.Patch(state); // 能力値・スキル・Perk を先に補正
+                NPCs.Patch(state); // 能力値・スキル・Perk 補正を先に
             }
 
-            // ===== 2. レベル計算 (LeveledNpcPatcher) =====
+            // ===== 2. レベル飽和計算 (LeveledNpcPatcher) =====
             if (ModSettings.Value.UnlevelNPCs)
             {
-                LeveledNpcPatcher.Patch(state); // NPCs の補正後にレベル計算
+                LeveledNpcPatcher.Patch(state); // NPCs 補正後に最大レベル計算
             }
 
-            // ===== 3. 固定レベル補正 / 最終NPC調整 (NpcPatcher) =====
+            // ===== 3. 最終固定補正 (NpcFinalizer) =====
             if (ModSettings.Value.UnlevelNPCs)
             {
-                NpcPatcher.Patch(state); // レベルを固定したい場合はここで
+                NpcFinalizer.Patch(state); // レベルを飽和上限に固定
             }
 
             // ===== アイテム関連 =====
@@ -74,3 +74,4 @@ namespace TrueUnleveledSkyrim
         }
     }
 }
+
