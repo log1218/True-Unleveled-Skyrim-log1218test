@@ -35,43 +35,30 @@ namespace TrueUnleveledSkyrim
 
             TUSConstants.GetPaths(state);
 
-            // ===== 1. 能力値・スキル・Perk 補正 (NPCs.cs) =====
-            if (ModSettings.Value.UnlevelNPCs)
-            {
-                NPCs.Patch(state); // 能力値・スキル・Perk 補正を先に
-            }
+            // ===== 0. ゾーン関連を最初に適用 =====
+            if (ModSettings.Value.UnlevelZones)
+                ZonesPatcher.PatchZones(state); // ここで最大レベル情報を設定
 
-            // ===== 2. レベル飽和計算 (LeveledNpcPatcher) =====
+            // ===== 1. 能力値・スキル・Perk 補正 =====
             if (ModSettings.Value.UnlevelNPCs)
-            {
-                LeveledNpcPatcher.Patch(state); // NPCs 補正後に最大レベル計算
-            }
+                NPCs.Patch(state); // NPCs.cs 補正
 
-            // ===== 3. 最終固定補正 (NpcFinalizer) =====
+            // ===== 2. レベル飽和計算 =====
             if (ModSettings.Value.UnlevelNPCs)
-            {
-                NpcFinalizer.Patch(state); // レベルを飽和上限に固定
-            }
+                LeveledNpcPatcher.Patch(state); // ゾーン最大値を参照して固定
 
-            // ===== アイテム関連 =====
+            // ===== 3. アイテム関連 =====
             if (ModSettings.Value.UnlevelItems)
             {
                 LeveledItemsPatcher.PatchLVLI(state);
                 OutfitsPatcher.PatchOutfits(state);
             }
 
-            // ===== ゾーン関連 =====
-            if (ModSettings.Value.UnlevelZones)
-            {
-                ZonesPatcher.PatchZones(state);
-            }
-
-            // ===== 装備リバランス =====
+            // ===== 4. 装備リバランス =====
             if (ModSettings.Value.RebalanceEquipment)
-            {
                 ItemsPatcher.PatchItems(state);
-            }
         }
     }
 }
+
 
