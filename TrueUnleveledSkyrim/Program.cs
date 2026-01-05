@@ -46,7 +46,7 @@ public static void RunPatch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state)
     {
         LeveledNpcPatcher.Patch(state);
         NpcPatcher.Patch(state);
-        NPCs.Patch(state);
+       // NPCs.Patch(state);
     }
 
     if (ModSettings.Value.UnlevelZones)
@@ -62,4 +62,5 @@ public static void RunPatch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state)
 
     }
 }
+
 
