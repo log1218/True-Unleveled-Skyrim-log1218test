@@ -29,7 +29,7 @@ namespace TrueUnleveledSkyrim.Patch
                 encZone.MinLevel = (sbyte)zoneDefinition.MaxLevel;
                 encZone.MaxLevel = encZone.MinLevel;
             }
-            }
+            
         }
 
         private static bool PatchZonesByKeyword(EncounterZone encZone, ILinkCache linkCache)
@@ -120,3 +120,4 @@ namespace TrueUnleveledSkyrim.Patch
         }
     }
 }
+
