@@ -1,5 +1,6 @@
 using Mutagen.Bethesda.Skyrim;
 using Mutagen.Bethesda.Synthesis;
+using Mutagen.Bethesda.Plugins.Cache;
 using System.Linq;
 
 namespace TrueUnleveledSkyrim.Patch
@@ -8,48 +9,56 @@ namespace TrueUnleveledSkyrim.Patch
     {
         public static void Patch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state)
         {
-            foreach (var lvlnGetter in state.LoadOrder.PriorityOrder
-                         .LeveledNpc()
-                         .WinningOverrides())
+            var linkCache = state.LoadOrder.PriorityOrder.ToImmutableLinkCache();
+
+            foreach (var npcGetter in state.LoadOrder.PriorityOrder.Npc().WinningOverrides())
             {
-                var lvln = lvlnGetter.DeepCopy();
-                bool changed = false;
-
-                // ChanceNone –³Œø‰»iƒXƒ|[ƒ“Œ‡‘¹–h~j
-                if (lvln.ChanceNone != 0)
-                {
-                    lvln.ChanceNone = 0;
-                    changed = true;
-                }
-
-                // Flags ‘S–³Œø‰»iPC ƒŒƒxƒ‹EğŒ•ªŠòERNG ”rœj
-                if (lvln.Flags != 0)
-                {
-                    lvln.Flags = 0;
-                    changed = true;
-                }
-
-                // š Tier “à’P’²‚³‘ÎôF
-                // Entry ‚Í•¡”c‚·‚ªA‚·‚×‚Ä“¯ˆêğŒ‚É³‹K‰»
-                foreach (var entry in lvln.Entries)
-                {
-                    if (entry.Level != 1 || entry.Count != 1)
-                    {
-                        entry.Level = 1;
-                        entry.Count = 1;
-                        changed = true;
-                    }
-                }
-
-                // ”O‚Ì‚½‚ß‹ó Entry ‚ğœŠO
-                if (lvln.Entries.Count == 0)
+                if (npcGetter.IsDeleted)
                     continue;
 
-                if (changed)
+                var npc = npcGetter.DeepCopy();
+                bool changed = false;
+
+                // ZonesPatcher é€£å‹•ã§æœ€å¤§ãƒ¬ãƒ™ãƒ«ã‚’å–å¾—
+                ushort zoneMaxLevel = GetZoneMaxLevel(npc, linkCache);
+
+                // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãƒ¬ãƒ™ãƒ«ã‚’ç„¡è¦–ã—ã¦ã€æœ€å¤§ãƒ¬ãƒ™ãƒ«ã¾ã§è£œæ­£
+                if (npc.Level < zoneMaxLevel)
                 {
-                    state.PatchMod.LeveledNpcs.Set(lvln);
+                    npc.Level = zoneMaxLevel;
+                    changed = true;
+                }
+
+                if (changed)
+                    state.PatchMod.Npcs.Set(npc);
+            }
+        }
+
+        private static ushort GetZoneMaxLevel(Npc npc, ILinkCache linkCache)
+        {
+            try
+            {
+                if (npc.Location != null && !npc.Location.IsNull)
+                {
+                    var zone = npc.Location.Resolve(linkCache);
+                    if (zone != null)
+                    {
+                        // ZonesPatcher ã§è¨­å®šã•ã‚ŒãŸæœ€å¤§ãƒ¬ãƒ™ãƒ«ã‚’å„ªå…ˆ
+                        if (TUSConstants.ZoneMaxLevels.TryGetValue(zone.FormKey, out var maxLevel))
+                            return maxLevel;
+
+                        // zone.MaxLevel ãŒè¨­å®šã•ã‚Œã¦ã„ã‚‹å ´åˆã¯ãã‚Œã‚’ä½¿ç”¨
+                        if (zone.MaxLevel.HasValue)
+                            return zone.MaxLevel.Value;
+                    }
                 }
             }
+            catch
+            {
+                // å®‰å…¨ç­–: ä¾‹å¤–ãŒå‡ºãŸã‚‰ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã«ãƒ•ã‚©ãƒ¼ãƒ«ãƒãƒƒã‚¯
+            }
+
+            return 50; // ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆæœ€å¤§ãƒ¬ãƒ™ãƒ«
         }
     }
 }
