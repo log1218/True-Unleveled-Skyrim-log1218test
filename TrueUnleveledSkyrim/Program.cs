@@ -9,7 +9,6 @@ using Mutagen.Bethesda.Plugins.Cache;
 using TrueUnleveledSkyrim.Config;
 using TrueUnleveledSkyrim.Patch;
 
-
 namespace TrueUnleveledSkyrim
 {
     public class Patcher
@@ -30,37 +29,48 @@ namespace TrueUnleveledSkyrim
                 .Run(args);
         }
 
-public static void RunPatch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state)
-{
-    LinkCache = state.LoadOrder.PriorityOrder.ToImmutableLinkCache();
+        public static void RunPatch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state)
+        {
+            LinkCache = state.LoadOrder.PriorityOrder.ToImmutableLinkCache();
 
-    TUSConstants.GetPaths(state);
+            TUSConstants.GetPaths(state);
 
-    if (ModSettings.Value.UnlevelItems)
-    {
-        LeveledItemsPatcher.PatchLVLI(state);
-        OutfitsPatcher.PatchOutfits(state);
-    }
+            // ===== 1. 能力値・スキル・Perk 補正 (NPCs.cs) =====
+            if (ModSettings.Value.UnlevelNPCs)
+            {
+                NPCs.Patch(state); // 能力値・スキル・Perk を先に補正
+            }
 
-    if (ModSettings.Value.UnlevelNPCs)
-    {
-        LeveledNpcPatcher.Patch(state);
-        NpcPatcher.Patch(state);
-       // NPCs.Patch(state);
-    }
+            // ===== 2. レベル計算 (LeveledNpcPatcher) =====
+            if (ModSettings.Value.UnlevelNPCs)
+            {
+                LeveledNpcPatcher.Patch(state); // NPCs の補正後にレベル計算
+            }
 
-    if (ModSettings.Value.UnlevelZones)
-    {
-        ZonesPatcher.PatchZones(state);
-    }
+            // ===== 3. 固定レベル補正 / 最終NPC調整 (NpcPatcher) =====
+            if (ModSettings.Value.UnlevelNPCs)
+            {
+                NpcPatcher.Patch(state); // レベルを固定したい場合はここで
+            }
 
-    if (ModSettings.Value.RebalanceEquipment)
-    {
-        ItemsPatcher.PatchItems(state);
+            // ===== アイテム関連 =====
+            if (ModSettings.Value.UnlevelItems)
+            {
+                LeveledItemsPatcher.PatchLVLI(state);
+                OutfitsPatcher.PatchOutfits(state);
+            }
+
+            // ===== ゾーン関連 =====
+            if (ModSettings.Value.UnlevelZones)
+            {
+                ZonesPatcher.PatchZones(state);
+            }
+
+            // ===== 装備リバランス =====
+            if (ModSettings.Value.RebalanceEquipment)
+            {
+                ItemsPatcher.PatchItems(state);
+            }
+        }
     }
 }
-
-    }
-}
-
-
