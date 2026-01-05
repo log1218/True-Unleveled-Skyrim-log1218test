@@ -30,31 +30,36 @@ namespace TrueUnleveledSkyrim
                 .Run(args);
         }
 
-        public static void RunPatch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state)
-        {
-            LinkCache = state.LoadOrder.PriorityOrder.ToImmutableLinkCache();
+public static void RunPatch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state)
+{
+    LinkCache = state.LoadOrder.PriorityOrder.ToImmutableLinkCache();
 
-            TUSConstants.GetPaths(state);
-            if (ModSettings.Value.UnlevelItems)
-            {
-                LeveledItemsPatcher.PatchLVLI(state);
-                OutfitsPatcher.PatchOutfits(state);
-            }
+    TUSConstants.GetPaths(state);
 
-            if (ModSettings.Value.UnlevelNPCs)
-            {
-                NPCsPatcher.PatchNPCs(state);
-            }
+    if (ModSettings.Value.UnlevelItems)
+    {
+        LeveledItemsPatcher.PatchLVLI(state);
+        OutfitsPatcher.PatchOutfits(state);
+    }
 
-            if (ModSettings.Value.UnlevelZones)
-            {
-                ZonesPatcher.PatchZones(state);
-            }
+    if (ModSettings.Value.UnlevelNPCs)
+    {
+        LeveledNpcPatcher.Patch(state);
+        NpcPatcher.Patch(state);
+        NPCs.Patch(state);
+    }
 
-            if (ModSettings.Value.RebalanceEquipment)
-            {
-                ItemsPatcher.PatchItems(state);
-            }
-        }
+    if (ModSettings.Value.UnlevelZones)
+    {
+        ZonesPatcher.PatchZones(state);
+    }
+
+    if (ModSettings.Value.RebalanceEquipment)
+    {
+        ItemsPatcher.PatchItems(state);
     }
 }
+
+    }
+}
+
